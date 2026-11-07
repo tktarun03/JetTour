@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>JetTour</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="description" content="JetTour: a guide to twelve real business jets with specs, floorplans and interiors.">
+<meta name="theme-color" content="#e4e8ee" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0e1013" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="JetTour">
+<link rel="manifest" href="manifest.webmanifest?v=1.0.0">
+<link rel="icon" href="icons/icon.svg?v=1.0.0" type="image/svg+xml">
+<link rel="icon" href="favicon.ico?v=1.0.0" sizes="32x32">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png?v=1.0.0">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Urbanist:wght@300;400;600;700;800&display=swap">
+<link rel="stylesheet" href="css/app.css?v=1.0.0">
+</head>
+<body>
+<div class="splash" id="splash" aria-hidden="true"><div class="logo">JT</div></div>
+<script>setTimeout(function () { var s = document.getElementById('splash'); if (s) s.remove(); }, 3000);</script>
+
+<div class="app">
+  <header class="topbar">
+    <a class="logo" id="logo" href="#fleet" aria-label="JetTour home">JT</a>
+    <span class="spacer"></span>
+    <a class="badge-count" id="top-compare" href="#compare" aria-label="Compare list"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg><span class="num">0</span></a>
+    <a class="badge-count" id="top-saved" href="#saved" aria-label="Saved jets"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/></svg><span class="num">0</span></a>
+  </header>
+  <main id="view" tabindex="-1"></main>
+</div>
+<div id="action-slot"></div>
+
+<div class="tabbar">
+  <nav aria-label="Main">
+    <a href="#fleet" data-tab="fleet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M21 15.5v-1.6l-8-4.9V4.2a1.4 1.4 0 0 0-2.8 0V9l-8 4.9v1.6l8-2.5v4.6l-2 1.5V21l3.4-1 3.4 1v-1.9l-2-1.5V13z"/></svg>Fleet</a>
+    <a href="#compare" data-tab="compare"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>Compare</a>
+    <a href="#saved" data-tab="saved"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7.5-4.4-7.5-10A4.3 4.3 0 0 1 12 7.6 4.3 4.3 0 0 1 19.5 10c0 5.6-7.5 10-7.5 10z"/></svg>Saved</a>
+    <a href="#more" data-tab="more"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M5 8h14M5 12h14M5 16h9"/></svg>More</a>
+  </nav>
+</div>
+
+<!-- load order matters: core → data → ui → features → app (tests/structure.test.mjs checks it) -->
+<script src="js/core/config.js?v=1.0.0"></script>
+<script src="js/core/i18n.js?v=1.0.0"></script>
+<script src="js/core/util.js?v=1.0.0"></script>
+<script src="js/core/releases.js?v=1.0.0"></script>
+<script src="js/core/store.js?v=1.0.0"></script>
+<script src="js/data/fleet.js?v=1.0.0"></script>
+<script src="js/ui/icons.js?v=1.0.0"></script>
+<script src="js/ui/toast.js?v=1.0.0"></script>
+<script src="js/ui/jet-art.js?v=1.0.0"></script>
+<script src="js/ui/floorplan.js?v=1.0.0"></script>
+<script src="js/features/actions.js?v=1.0.0"></script>
+<script src="js/features/home.js?v=1.0.0"></script>
+<script src="js/features/overview.js?v=1.0.0"></script>
+<script src="js/features/seats.js?v=1.0.0"></script>
+<script src="js/features/interior.js?v=1.0.0"></script>
+<script src="js/features/compare.js?v=1.0.0"></script>
+<script src="js/features/saved.js?v=1.0.0"></script>
+<script src="js/features/selfcheck.js?v=1.0.0"></script>
+<script src="js/features/more.js?v=1.0.0"></script>
+<script src="js/features/intro.js?v=1.0.0"></script>
+<script src="js/app.js?v=1.0.0"></script>
+</body>
+</html>

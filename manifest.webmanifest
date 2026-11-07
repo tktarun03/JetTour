@@ -1,0 +1,16 @@
+{
+  "name": "JetTour",
+  "short_name": "JetTour",
+  "description": "Specs, floorplans and interiors of twelve real business jets.",
+  "start_url": "./#fleet",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#e4e8ee",
+  "theme_color": "#e4e8ee",
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" },
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml" }
+  ]
+}
