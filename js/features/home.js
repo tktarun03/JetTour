@@ -20,7 +20,7 @@ const Home = (() => {
       <div><div class="pax num">${j.paxMax}</div><div class="pax-l">${t('Passengers')}</div></div>
       <div class="tags">${saved ? `<span class="tag">${t('Saved')}</span>` : ''}${j.successor ? `<span class="tag">${t('Successor due')}</span>` : ''}</div>
       <span class="go" aria-hidden="true">${Icon.arrow}</span>
-      <div class="art">${JetArt.plan(j)}</div>
+      <div class="art photo">${JetMedia.or(j, { eager: i < 2 }, () => JetArt.plan(j))}</div>
       <div class="foot-row">
         <div><div class="maker">${Util.esc(j.maker)}</div><div class="model">${Util.esc(j.model)} · ${t(CLASSES[j.cls].label)}</div></div>
         <div class="range-mini">${rv} ${ru}<br>${t('range')}</div>

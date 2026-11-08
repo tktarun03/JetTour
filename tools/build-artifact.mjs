@@ -9,6 +9,12 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 let html = read('index.html');
 
 html = html.replace(/<link rel="stylesheet" href="(css\/[^"?]+)[^"]*">/g, (_, p) => `<style>\n${read(p)}\n</style>`);
+// aircraft photos as data URIs (large variant), defined before jet-media.js reads them
+const jetData = {};
+for (const f of fs.readdirSync(path.join(root, 'img/jets')).filter((n) => n.endsWith('-side-1560.webp'))) {
+  jetData[f.replace('-side-1560.webp', '')] = 'data:image/webp;base64,' + fs.readFileSync(path.join(root, 'img/jets', f)).toString('base64');
+}
+html = html.replace(/<script src="js\/ui\/jet-media\.js/, `<script>const JET_IMG_DATA = ${JSON.stringify(jetData)};</script>\n<script src="js/ui/jet-media.js`);
 html = html.replace(/<script src="(js\/[^"?]+)[^"]*"><\/script>/g, (_, p) => `<script>\n${read(p).replace(/<\/script/gi, '<\\/script')}\n</script>`);
 // drop PWA links the artifact frame can't use
 html = html.replace(/<link rel="(manifest|icon|apple-touch-icon)"[^>]*>\n?/g, '');

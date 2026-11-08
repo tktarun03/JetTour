@@ -1,6 +1,14 @@
 /* Newest first. Must match CHANGELOG.md, APP.version, ?v= on every asset and sw.js VERSION (tests check). */
 const RELEASES = [
   {
+    v: '1.3.0',
+    date: '2026-11-08',
+    notes: [
+      'Realistic aircraft pictures for all twelve jets on the fleet cards, aircraft page, compare table and intro',
+      'Pictures are small WebP files that load as you scroll; if one fails, the drawn jet appears instead',
+    ],
+  },
+  {
     v: '1.2.0',
     date: '2026-11-08',
     notes: [

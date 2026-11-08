@@ -2,7 +2,7 @@
 const APP = {
   name: 'JetTour',
   short: 'JT',
-  version: '1.2.0',
+  version: '1.3.0',
   repo: 'tktarun03/JetTour',
   dataAsOf: 'November 2026',
 };

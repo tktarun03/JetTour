@@ -29,7 +29,7 @@ const Interior = (() => {
         <a class="jet-card sky mini-jet" href="#jet-${j.id}">
           <div><div class="pax">${j.paxMax}</div><div class="pax-l">${t('Passengers')}</div></div>
           <span class="go" aria-hidden="true">${Icon.arrow}</span>
-          <div class="art">${JetArt.plan(j)}</div>
+          <div class="art photo">${JetMedia.or(j, {}, () => JetArt.plan(j))}</div>
           <div class="maker">${Util.esc(j.maker)}</div><div class="model">${Util.esc(j.model)}</div>
         </a>
         ${Overview.fpCard(j, s, { hl: zi, tools: false })}

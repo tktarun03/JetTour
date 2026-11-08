@@ -260,6 +260,7 @@ const App = (() => {
     document.addEventListener('click', onClick);
     document.addEventListener('change', onChange);
     document.addEventListener('input', onInput);
+    document.addEventListener('error', JetMedia.onError, true); // a missing photo falls back to the drawing
     document.addEventListener('keydown', onKey);
     window.addEventListener('hashchange', navigate);
     Gestures.lockZoom();

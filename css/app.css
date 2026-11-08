@@ -42,6 +42,7 @@
   --chrome: #e6e8ec;
   --chrome-2: #99a0aa;
   --table: #ddd6cb;
+  --ground: rgba(20, 30, 50, .22);
   --notif-bg: #15171a;
   --notif-ink: #f3f4f6;
   --notif-muted: #a1a5ad;
@@ -66,6 +67,7 @@
     --seat-fill: #5d7393; --seat-line: #8ea7c6; --seat: #2c2e33; --seat-back: #4c5058;
     --hatch: #35383d; --hatch-bg: #222427;
     --leather: #2c4673; --leather-2: #5a7cb6; --chrome: #c9cdd3; --chrome-2: #7d848e; --table: #6d675e;
+    --ground: rgba(0, 0, 0, .6);
     --notif-bg: #f1f2f4; --notif-ink: #101113; --notif-muted: #5b5f66;
     --shadow: 0 24px 48px -28px rgba(0, 0, 0, .85);
     color-scheme: dark;
@@ -84,6 +86,7 @@
   --seat-fill: #5d7393; --seat-line: #8ea7c6; --seat: #2c2e33; --seat-back: #4c5058;
   --hatch: #35383d; --hatch-bg: #222427;
   --leather: #2c4673; --leather-2: #5a7cb6; --chrome: #c9cdd3; --chrome-2: #7d848e; --table: #6d675e;
+  --ground: rgba(0, 0, 0, .6);
   --notif-bg: #f1f2f4; --notif-ink: #101113; --notif-muted: #5b5f66;
   --shadow: 0 24px 48px -28px rgba(0, 0, 0, .85);
   color-scheme: dark;
@@ -329,7 +332,8 @@ h2.sec { font-size: 1.2rem; font-weight: 400; margin: 28px 0 12px; letter-spacin
 .cmp-pick { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 16px; }
 .cmp-table-wrap { overflow-x: auto; border-radius: 24px; }
 .cmp-table { width: 100%; border-collapse: collapse; font-size: .88rem; table-layout: fixed; }
-.cmp-table th, .cmp-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: anywhere; }
+.cmp-table th, .cmp-table td { padding: 12px 8px; text-align: left; border-bottom: 1px solid var(--line); vertical-align: top; overflow-wrap: break-word; hyphens: auto; -webkit-hyphens: auto; }
+.cmp-table thead .muted { font-size: .74rem; }
 .cmp-table th:first-child { padding-left: 16px; }
 .cmp-table thead th { font-size: .96rem; font-weight: 500; }
 .cmp-table th[scope="row"] { color: var(--muted); font-weight: 300; font-size: .8rem; }
@@ -430,6 +434,19 @@ textarea.box { width: 100%; min-height: 110px; border-radius: 16px; border: 1px 
   body.has-acc .toast { bottom: calc(var(--tabbar-h) + 82px); }
   .tabs { margin: 0; padding-left: 2px; padding-right: 2px; }
 }
+
+/* ---------- aircraft photos ---------- */
+.photo { position: relative; display: block; }
+.photo .jet-img, .photo .jet-fallback svg { position: relative; z-index: 1; display: block; width: 100%; height: auto; max-width: 100%; }
+.photo::after { /* soft ground shadow under the wheels */
+  content: ""; position: absolute; left: 14%; right: 10%; bottom: 3%; height: 9%; z-index: 0; pointer-events: none;
+  background: radial-gradient(closest-side, var(--ground), transparent); }
+.jet-card .art.photo { aspect-ratio: 1560 / 600; margin: 4px -8px 2px; max-width: calc(100% + 16px); }
+.hero-art.photo { aspect-ratio: 1560 / 600; }
+.empty .photo { max-width: 360px; margin: 0 auto; }
+.cmp-photo { width: 100%; max-width: 140px; margin-bottom: 6px; }
+.cmp-photo::after { display: none; }
+.jet-fallback { display: block; }
 
 /* ---------- UX patterns (iOS vocabulary) ---------- */
 [hidden] { display: none !important; }

@@ -60,7 +60,7 @@ const Overview = (() => {
           <a class="circle" href="#specs-${j.id}" aria-label="${t('Baggage and specs')}">${Icon.bag}</a>
           <a class="circle" href="#seats-${j.id}" aria-label="${t('Seats')}">${Icon.users}</a>
         </div>
-        <div class="hero-art vt-hero">${JetArt.side(j, { gear: true, door: true })}</div>
+        <div class="hero-art vt-hero photo">${JetMedia.or(j, { eager: true, sizes: '(min-width: 900px) 920px, 100vw' }, () => JetArt.side(j, { gear: true, door: true }))}</div>
       </div>
       <div class="tools" style="justify-content:flex-end;margin-top:-4px">
         <a class="circle" href="#jet-${prev.id}" aria-label="${t('Previous aircraft')}: ${Util.esc(prev.model)}">${Icon.prev}</a>

@@ -9,7 +9,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const { chromium } = require('playwright');
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
-const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.webmanifest': 'application/manifest+json' };
+const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.ico': 'image/x-icon', '.webp': 'image/webp', '.webmanifest': 'application/manifest+json' };
 const server = http.createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
   if (p === '/') p = '/index.html';
@@ -56,6 +56,8 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   await page.click('#intro [data-i="next"]');
   ok(await page.locator('#intro').count() === 0, 'intro closes');
   ok(await page.locator('.jet-card').count() === 12, '12 aircraft on the fleet screen');
+  await page.waitForFunction(() => { const i = document.querySelector('.jet-card img.jet-img'); return i && i.complete && i.naturalWidth > 0; });
+  ok(true, 'first fleet photo loads');
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/02-fleet.png` });
   await page.reload();
   ok(await page.locator('#intro').count() === 0, 'intro does not show again');
@@ -79,6 +81,18 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   ok((await toastText(page)) === 'Up to date', 'refresh ends with Up to date');
   ok(await page.locator('#accessory').isHidden(), 'no compare tray when compare is empty');
   ok(errors.length === 0, `no console errors (${errors.join(' | ')})`);
+  await ctx.close();
+}
+
+// 1b. A missing photo falls back to the drawn jet
+{
+  const { ctx, page, errors } = await fresh();
+  await page.route(/img\/jets\/g700-side/, (r) => r.fulfill({ status: 404, body: '' }));
+  await seed(page, { introDone: true, lastVersion: VERSION });
+  await page.goto(base + '#jet-g700');
+  await page.waitForSelector('.hero-art .jet-fallback svg');
+  ok(true, 'missing G700 photo falls back to the drawing');
+  ok(errors.filter((e) => !/404|Failed to load/.test(e)).length === 0, `no other errors (${errors.join(' | ')})`);
   await ctx.close();
 }
 

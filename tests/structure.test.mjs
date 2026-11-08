@@ -31,6 +31,12 @@ const walk = (d) => fs.readdirSync(path.join(root, d), { withFileTypes: true }).
 walk('js');
 for (const f of onDisk) ok(scripts.includes(f), `${f} is loaded by index.html`);
 
+// every aircraft photo listed in JetMedia exists in both sizes, and every jet has one
+const hasIds = [...read('js/ui/jet-media.js').match(/new Set\(\[([^\]]+)\]/)[1].matchAll(/'([a-z0-9]+)'/g)].map((m) => m[1]);
+const fleetIds = [...read('js/data/fleet.js').matchAll(/id: '([a-z0-9]+)'/g)].map((m) => m[1]);
+for (const id of fleetIds) ok(hasIds.includes(id), `${id} has a photo listed`);
+for (const id of hasIds) for (const w of [780, 1560]) ok(fs.existsSync(path.join(root, `img/jets/${id}-side-${w}.webp`)), `img/jets/${id}-side-${w}.webp exists`);
+
 // unique top-level names across the shared global scope
 const names = new Map();
 for (const f of scripts) {

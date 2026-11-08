@@ -4,13 +4,13 @@ const Intro = (() => {
     const g700 = FLEET_BY_ID.g700, g7500 = FLEET_BY_ID.global7500;
     const demoCard = `<div class="jet-card sky card-demo" aria-hidden="true">
         <div><div class="pax">${g700.paxTyp}</div><div class="pax-l">${t('Passengers')}</div></div>
-        <span class="go">${Icon.arrow}</span><div class="art">${JetArt.plan(g700)}</div>
+        <span class="go">${Icon.arrow}</span><div class="art photo">${JetMedia.or(g700, { eager: true }, () => JetArt.plan(g700))}</div>
         <div class="maker">${Util.esc(g700.maker)}</div><div class="model">${Util.esc(g700.model)} · ${t('Grand Suite layout')}</div></div>`;
     const seatCard = `<div class="seat-type card-demo" aria-hidden="true" style="aspect-ratio:1/1;flex:none">${Floorplan.icon('recliner')}<span class="nm">${t('Recliner')}</span><span class="go">${Icon.arrow}</span></div>`;
     const slides = [
       [`${Util.esc(APP.name)} <b>${t('Twelve real jets.')}</b>`, t('From the light Phenom 300E to the 8,200 nm Gulfstream G800, with published specs and their sources.'), demoCard],
       [`${t('Every seat,')} <b>${t('every section.')}</b>`, t('Walk the cabin section by section, tap any seat on the floorplan, then make it yours.'), seatCard],
-      [`${t('Side by side,')} <b>${t('in seconds.')}</b>`, t('Range, cabin and speed for up to three jets, in feet or metres.'), `<div class="hero-art">${JetArt.side(g7500, { gear: true, door: true })}</div>`],
+      [`${t('Side by side,')} <b>${t('in seconds.')}</b>`, t('Range, cabin and speed for up to three jets, in feet or metres.'), `<div class="hero-art photo">${JetMedia.or(g7500, { sizes: '92vw' }, () => JetArt.side(g7500, { gear: true, door: true }))}</div>`],
     ];
     const el = document.createElement('div');
     el.className = 'intro';

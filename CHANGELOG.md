@@ -2,6 +2,11 @@
 
 Newest first. Matches `RELEASES` in `js/core/releases.js`.
 
+## 1.3.0 — 2026-11-08
+
+- Realistic aircraft pictures for all twelve jets on the fleet cards, aircraft page, compare table and intro
+- Pictures are small WebP files that load as you scroll; if one fails, the drawn jet appears instead
+
 ## 1.2.0 — 2026-11-08
 
 - Refresh button (and pull down from the top) reloads your data and checks for a new version

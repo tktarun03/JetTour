@@ -18,7 +18,8 @@ Live: GitHub Pages from `main` (https://tktarun03.github.io/JetTour/). A Claude 
 | `sw.js` | Offline cache. `VERSION` must equal `APP.version` |
 | `tests/` | `structure.test.mjs` (versions, load order, name clashes), `flows.test.mjs` (Playwright flows + 3 phone sizes) |
 | `docs/` | `ARCHITECTURE.md` (data shape), `research.md` (sourced spec report) |
-| `tools/build-artifact.mjs` | Inlines everything into one HTML file for the Claude artifact |
+| `img/jets/` | Aircraft photos `<id>-side-780.webp` / `-1560.webp` (AI-generated side views, cleaned by `tools/process-jet-images.py`) |
+| `tools/build-artifact.mjs` | Inlines everything into one HTML file for the Claude artifact (photos become data URIs in `JET_IMG_DATA`) |
 
 ## Where things are
 
@@ -64,7 +65,7 @@ Not used on purpose: pinch (zoom is locked, by request), shake to undo (needs mo
 7. Mobile Safari first: inputs ≥ 16px, tap targets ≥ 44px, no text < 11px, safe-area insets, no `100vh` stacks.
 9. Zoom is locked (viewport + `touch-action` + iOS gesture events). Keep the A++ text size working, since it is the only way to enlarge text.
 10. Every animation has a `prefers-reduced-motion` fallback; progress spinners keep turning (slower).
-8. Not affiliated with any manufacturer. No manufacturer logos or artwork; aircraft drawings are generated in `jet-art.js`.
+8. Not affiliated with any manufacturer. No manufacturer logos or artwork. Aircraft photos are AI-generated with no logos, text or registrations (check each new one); `JetMedia.side()` falls back to the drawings in `jet-art.js`. The Interior cutaway stays drawn, because its sections are measured on the drawing.
 
 ## Test
 
@@ -85,6 +86,7 @@ See `.claude/skills/release/SKILL.md`.
 - Classic scripts share one global scope. `structure.test.mjs` fails on duplicate top-level names.
 - The floorplan scrolls sideways on phones; `App.centreFloorplans()` scrolls the selected seat or section into view after each render.
 - Section `+` hotspots are SVG `<g data-act="zone">` inside the hero; tests target `.sec-pills` buttons to avoid ambiguity.
+- New aircraft photo: generate a transparent 1536×1024 side view (nose left, door and airstair open, white with a thin gold stripe, no logos, text or registration), run `python3 tools/process-jet-images.py <folder>`, add the id to `JetMedia.HAS`. The structure test checks both sizes exist.
 - `Floorplan.build` caches per aircraft id. If you edit layouts at runtime, clear the cache.
 - Range figures are published under different loads (CJ4 ferry with no passengers, Longitude load unstated). Keep `rangeCond` honest.
 - Seed localStorage in tests from a non-app page on the same origin (see `seed()`), or the running app overwrites it.

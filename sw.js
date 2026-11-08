@@ -1,5 +1,5 @@
 /* Offline support. Page: network-first. Versioned assets (?v=): cache-first. VERSION must equal APP.version. */
-const VERSION = '1.2.0';
+const VERSION = '1.3.0';
 const CACHE = 'jettour-' + VERSION;
 
 self.addEventListener('install', (e) => { self.skipWaiting(); });
