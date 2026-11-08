@@ -60,7 +60,7 @@ const Overview = (() => {
           <a class="circle" href="#specs-${j.id}" aria-label="${t('Baggage and specs')}">${Icon.bag}</a>
           <a class="circle" href="#seats-${j.id}" aria-label="${t('Seats')}">${Icon.users}</a>
         </div>
-        <div class="hero-art">${JetArt.side(j, { gear: true, door: true })}</div>
+        <div class="hero-art vt-hero">${JetArt.side(j, { gear: true, door: true })}</div>
       </div>
       <div class="tools" style="justify-content:flex-end;margin-top:-4px">
         <a class="circle" href="#jet-${prev.id}" aria-label="${t('Previous aircraft')}: ${Util.esc(prev.model)}">${Icon.prev}</a>

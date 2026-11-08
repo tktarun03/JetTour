@@ -2,6 +2,8 @@
 const App = (() => {
   const view = () => document.getElementById('view');
   let hostTheme = null;
+  let lastRoute = null;
+  let popSel = null;          // element to "spring pop" after the next render (symbol effect)
 
   function route() {
     const h = (location.hash || '#fleet').slice(1);
@@ -25,11 +27,17 @@ const App = (() => {
     else if (r.name === 'more') html = More.render(s);
     else html = Home.render(s);
     const y = window.scrollY;
-    view().innerHTML = html;
+    const v = view();
+    v.innerHTML = html;
+    v.classList.toggle('enter', !keepScroll && !Gestures.reduced()); // stagger only when arriving on a screen
     centreFloorplans();
+    if (r.name === 'fleet') Home.afterRender();
     renderTabs(r);
     renderTop(s);
+    renderAccessory(r, s);
+    if (popSel) { document.querySelectorAll(popSel).forEach((el) => el.classList.add('pop')); popSel = null; }
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
+    lastRoute = r;
     document.title = r.jet ? `${r.jet.model} · ${APP.name}` : APP.name;
   }
 
@@ -60,6 +68,44 @@ const App = (() => {
     });
   }
 
+  /* Bottom accessory: compare tray above the tab bar while jets are waiting to be compared. */
+  function renderAccessory(r, s) {
+    const acc = document.getElementById('accessory');
+    const n = s.compare.length;
+    const show = n > 0 && r.name !== 'compare' && r.name !== 'more';
+    document.body.classList.toggle('has-acc', show);
+    acc.hidden = !show;
+    if (!show) { acc.innerHTML = ''; return; }
+    const names = s.compare.map((id) => FLEET_BY_ID[id] && FLEET_BY_ID[id].model).filter(Boolean);
+    acc.innerHTML = `<span class="acc-dots">${s.compare.map(() => '<i></i>').join('')}${'<i class="off"></i>'.repeat(3 - n)}</span>
+      <span class="acc-tx"><strong>${t('{n} of 3 in compare', { n })}</strong><span>${Util.esc(names.join(' · '))}</span></span>
+      <a class="acc-btn" href="#compare">${t('Compare')}</a>`;
+  }
+
+  /* Hash navigation with a zoom transition (shared element: card art ↔ overview hero) where supported. */
+  function navigate() {
+    const next = route();
+    const from = lastRoute;
+    const update = () => {
+      render(false);
+      if (from && from.jet && !next.jet) {
+        const art = document.querySelector(`.jet-card[data-jet="${from.jet.id}"] .art`);
+        if (art) art.style.viewTransitionName = 'jet-hero';
+      }
+    };
+    if (!document.startViewTransition || Gestures.reduced() || Sheet.isOpen()) return update();
+    if (next.name === 'jet') {
+      const art = document.querySelector(`.jet-card[data-jet="${next.jet.id}"] .art`);
+      if (art) art.style.viewTransitionName = 'jet-hero';
+    }
+    try {
+      const vt = document.startViewTransition(update);
+      // a newer navigation can skip this one; that is expected, not an error
+      [vt.ready, vt.finished, vt.updateCallbackDone].forEach((p) => p && p.catch(() => {}));
+    } catch (e) { update(); }
+  }
+
+  function pop(sel) { popSel = sel; }
   function refresh() { render(true); }
   function go(name) { if (location.hash === '#' + name) render(); else location.hash = name; }
 
@@ -68,7 +114,7 @@ const App = (() => {
     const root = document.documentElement;
     if (s.theme === 'system') { if (hostTheme) root.setAttribute('data-theme', hostTheme); else root.removeAttribute('data-theme'); }
     else root.setAttribute('data-theme', s.theme);
-    root.style.setProperty('--fs', { s: 0.92, m: 1, l: 1.12 }[s.textSize] || 1);
+    root.style.setProperty('--fs', { s: 0.92, m: 1, l: 1.12, xl: 1.25 }[s.textSize] || 1);
   }
 
   function onClick(e) {
@@ -102,7 +148,7 @@ const App = (() => {
         const labels = {
           theme: { system: t('Theme follows your device'), light: t('Switched to light theme'), dark: t('Switched to dark theme') },
           units: { imperial: t('Showing feet, nm and knots'), metric: t('Showing metres, km and km/h') },
-          textSize: { s: t('Text is smaller'), m: t('Text is standard size'), l: t('Text is larger') },
+          textSize: { s: t('Text is smaller'), m: t('Text is standard size'), l: t('Text is larger'), xl: t('Text is extra large') },
         };
         Actions.setPref(k, v, labels[k][v]);
         break;
@@ -128,9 +174,18 @@ const App = (() => {
         }
         break;
       }
-      case 'reset': More.confirmReset = true; refresh(); break;
-      case 'reset-no': More.confirmReset = false; refresh(); break;
-      case 'reset-yes': More.confirmReset = false; Store.reset(); applyPrefs(); refresh(); toast(t('Erased all data'), { kind: 'good', body: t('This device starts fresh') }); break;
+      case 'reset':
+        Sheet.open({
+          title: t('Erase everything?'),
+          body: t('Saved jets, seats and settings are removed from this device. This cannot be undone.'),
+          actions: [
+            { label: t('Back up first'), fn: () => document.querySelector('[data-act="backup"]')?.click() },
+            { label: t('Erase everything'), kind: 'danger', fn: () => { Store.reset(); applyPrefs(); refresh(); toast(t('Erased all data'), { kind: 'good', body: t('This device starts fresh') }); } },
+          ],
+          cancel: t('Keep my data'),
+        });
+        break;
+      case 'refresh': Refresh.run('button'); break;
       case 'selfcheck': {
         const r = More.runCheck(); refresh();
         toast(r.pass ? t('All checks passed') : t('{n} checks failed', { n: r.failed.length }), { kind: r.pass ? 'good' : 'bad', body: r.pass ? t('{n} checks', { n: r.total }) : r.failed[0] });
@@ -138,6 +193,46 @@ const App = (() => {
       }
       default: break;
     }
+  }
+
+  /* Swipe on the hero: previous / next aircraft on the same tab. */
+  function step(d) {
+    const r = route();
+    if (!r.jet) return;
+    const i = FLEET.findIndex((j) => j.id === r.jet.id);
+    const j = FLEET[(i + d + FLEET.length) % FLEET.length];
+    location.hash = `${r.name}-${j.id}`;
+  }
+
+  /* Double tap: heart bursts over the hero (Instagram-style "like" = save). */
+  function burst(el) {
+    if (Gestures.reduced()) return;
+    const h = document.createElement('span');
+    h.className = 'burst';
+    h.innerHTML = Icon.heartFill;
+    el.appendChild(h);
+    setTimeout(() => h.remove(), 750);
+  }
+
+  /* Touch and hold a fleet card: quick actions in an action sheet. */
+  function quickActions(id) {
+    const j = FLEET_BY_ID[id];
+    if (!j) return;
+    const s = Store.get();
+    Sheet.open({
+      title: `${j.maker} ${j.model}`,
+      body: `${j.paxMax} ${t('passengers')} · ${Util.dist(j.rangeNm, s.units)}`,
+      actions: [
+        { label: t('Open'), kind: 'primary', fn: () => { location.hash = `jet-${id}`; } },
+        { label: t('Seats'), fn: () => { location.hash = `seats-${id}`; } },
+        { label: s.saved.includes(id) ? t('Remove from saved') : t('Save'), fn: () => Actions.toggleSave(id) },
+        { label: s.compare.includes(id) ? t('Remove from compare') : t('Add to compare'), fn: () => Actions.toggleCompare(id) },
+      ],
+    });
+  }
+
+  function onInput(e) {
+    if (e.target.id === 'q') Home.filterLive(e.target.value);
   }
 
   function onChange(e) {
@@ -164,8 +259,22 @@ const App = (() => {
     document.getElementById('logo').textContent = APP.short;
     document.addEventListener('click', onClick);
     document.addEventListener('change', onChange);
+    document.addEventListener('input', onInput);
     document.addEventListener('keydown', onKey);
-    window.addEventListener('hashchange', () => render(false));
+    window.addEventListener('hashchange', navigate);
+    Gestures.lockZoom();
+    Gestures.tabBarMinimize();
+    Gestures.pullToRefresh(Refresh.run);
+    Gestures.bind({
+      swipe: { selector: '.stage', left: () => step(1), right: () => step(-1) },
+      doubleTap: { selector: '.stage .hero-art', fn: (el) => {
+        const r = route();
+        if (!r.jet) return;
+        burst(el);
+        if (!Store.get().saved.includes(r.jet.id)) Actions.toggleSave(r.jet.id);
+      } },
+      hold: { selector: '.jet-card[data-jet]', fn: (card) => quickActions(card.dataset.jet) },
+    });
     render(false);
     const splash = document.getElementById('splash');
     if (splash) { splash.classList.add('gone'); setTimeout(() => splash.remove(), 400); }
@@ -180,7 +289,7 @@ const App = (() => {
     } catch (e) { /* not available here */ }
   }
 
-  return { boot, refresh, go, applyPrefs, render };
+  return { boot, refresh, go, applyPrefs, render, pop };
 })();
 
 if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', App.boot);

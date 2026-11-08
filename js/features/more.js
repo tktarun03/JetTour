@@ -1,6 +1,5 @@
 /* More: preferences, version history, backup/restore, self-check, about. (Hash is #more; #settings is reserved by the host.) */
 const More = (() => {
-  let confirmReset = false;
   let checkResult = null;
 
   const seg = (key, cur, opts) => `<div class="seg" role="group">${opts.map(([v, l]) => `<button data-act="pref" data-k="${key}" data-v="${v}" aria-pressed="${cur === v}">${l}</button>`).join('')}</div>`;
@@ -10,7 +9,8 @@ const More = (() => {
       <div class="group glass">
         <div class="set-row"><span class="k">${t('Theme')}</span>${seg('theme', s.theme, [['system', t('System')], ['light', t('Light')], ['dark', t('Dark')]])}</div>
         <div class="set-row"><span class="k">${t('Units')}</span>${seg('units', s.units, [['imperial', t('ft · nm · kt')], ['metric', t('m · km · km/h')]])}</div>
-        <div class="set-row"><span class="k">${t('Text size')}</span>${seg('textSize', s.textSize, [['s', 'A−'], ['m', 'A'], ['l', 'A+']])}</div>
+        <div class="set-row"><span class="k">${t('Text size')}</span>${seg('textSize', s.textSize, [['s', 'A−'], ['m', 'A'], ['l', 'A+'], ['xl', 'A++']])}</div>
+        <div class="set-row"><span class="d">${t('Pinch to zoom is off in JetTour. Use text size to make everything bigger.')}</span></div>
         <div class="set-row inline"><span><span class="k">${t('Get started checklist')}</span><br><span class="d">${t('Shown on the fleet screen until done')}</span></span>
           <button class="btn" data-act="toggle-checklist">${s.checklistHidden ? t('Show') : t('Hide')}</button></div>
         <div class="set-row inline"><span class="k">${t('Intro tour')}</span><button class="btn" data-act="replay-intro">${t('Replay')}</button></div>
@@ -25,9 +25,8 @@ const More = (() => {
           <textarea class="box" id="restore-box" placeholder="${t('Paste backup here')}" aria-label="${t('Backup to restore')}"></textarea>
           <div class="confirm-row"><button class="btn" data-act="restore">${t('Restore backup')}</button></div></div>
         <div class="set-row"><span class="k">${t('Erase everything')}</span>
-          ${confirmReset
-            ? `<span class="d">${t('This removes saved jets, seats and settings from this device. It cannot be undone.')}</span><div class="confirm-row"><button class="btn danger" data-act="reset-yes">${t('Erase now')}</button><button class="btn" data-act="reset-no">${t('Keep my data')}</button></div>`
-            : `<div class="confirm-row"><button class="btn danger" data-act="reset">${t('Erase…')}</button></div>`}</div>
+          <span class="d">${t('Removes saved jets, seats and settings from this device.')}</span>
+          <div class="confirm-row"><button class="btn danger" data-act="reset">${t('Erase…')}</button></div></div>
       </div>
 
       <h2 class="sec">${t('Version history')}</h2>
@@ -50,5 +49,5 @@ const More = (() => {
     checkResult = r.pass ? `${t('All {n} checks passed.', { n: r.total })}` : `${t('{f} of {n} checks failed:', { f: r.failed.length, n: r.total })}\n• ${r.failed.join('\n• ')}`;
     return r;
   }
-  return { render, runCheck, set confirmReset(v) { confirmReset = v; } };
+  return { render, runCheck };
 })();

@@ -9,7 +9,7 @@ const Store = (() => {
     opened: [],         // aircraft ids viewed (drives the Get started checklist)
     theme: 'system',    // system | light | dark
     units: 'imperial',  // imperial | metric
-    textSize: 'm',      // s | m | l
+    textSize: 'm',      // s | m | l | xl
     introDone: false,
     checklistHidden: false,
     lastVersion: null,
@@ -27,7 +27,7 @@ const Store = (() => {
     if (!out.seats || typeof out.seats !== 'object' || Array.isArray(out.seats)) out.seats = {};
     if (!['system', 'light', 'dark'].includes(out.theme)) out.theme = 'system';
     if (!['imperial', 'metric'].includes(out.units)) out.units = 'imperial';
-    if (!['s', 'm', 'l'].includes(out.textSize)) out.textSize = 'm';
+    if (!['s', 'm', 'l', 'xl'].includes(out.textSize)) out.textSize = 'm';
     out.compare = out.compare.slice(0, 3);
     out.schema = 1;
     return out;

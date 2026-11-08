@@ -16,7 +16,7 @@ const Home = (() => {
   function card(j, i, s) {
     const saved = s.saved.includes(j.id);
     const [rv, ru] = Util.distParts(j.rangeNm, s.units);
-    return `<a class="jet-card${i % 2 === 0 ? ' sky' : ''}" href="#jet-${j.id}" data-jet="${j.id}">
+    return `<a class="jet-card${i % 2 === 0 ? ' sky' : ''}" href="#jet-${j.id}" data-jet="${j.id}" style="--i:${i}">
       <div><div class="pax num">${j.paxMax}</div><div class="pax-l">${t('Passengers')}</div></div>
       <div class="tags">${saved ? `<span class="tag">${t('Saved')}</span>` : ''}${j.successor ? `<span class="tag">${t('Successor due')}</span>` : ''}</div>
       <span class="go" aria-hidden="true">${Icon.arrow}</span>
@@ -50,19 +50,44 @@ const Home = (() => {
     const chips = [['all', t('All')], ...Object.entries(CLASSES).map(([k, v]) => [k, t(v.label)])];
     return `<h1 class="title">${t('Select Your')} <b>${t('Aircraft')}</b></h1>
       ${checklist(s)}
-      <div class="chips" role="group" aria-label="${t('Filter by class')}">
+      <div class="search glass">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+        <input id="q" type="search" inputmode="search" autocomplete="off" enterkeyhint="search" placeholder="${t('Search maker or model')}" aria-label="${t('Search aircraft')}" value="${Util.esc(query)}">
+      </div>
+      <div class="chips scope" role="group" aria-label="${t('Filter by class')}">
         ${chips.map(([k, l]) => `<button class="chip" data-act="filter" data-v="${k}" aria-pressed="${s.filter === k}">${l}</button>`).join('')}
       </div>
       <div class="toolbar">
-        <span class="muted small">${Util.plural(items.length, t('aircraft'), t('aircraft'))}</span>
+        <span class="muted small" id="count" aria-live="polite">${Util.plural(items.length, t('aircraft'), t('aircraft'))}</span>
         <label class="sr-only" for="sort" hidden>${t('Sort')}</label>
         <select id="sort" data-act="sort" aria-label="${t('Sort aircraft')}">
           ${Object.entries(SORTS).map(([k, v]) => `<option value="${k}"${s.sort === k ? ' selected' : ''}>${t(v.label)}</option>`).join('')}
         </select>
       </div>
       <div class="cards">${items.map((j, i) => card(j, i, s)).join('')}</div>
+      <div class="empty glass" id="no-match" hidden><h3>${t('No jets match')}</h3><p>${t('Try a maker such as Gulfstream, or clear the search.')}</p></div>
       <p class="legend-note">${t('Specs from manufacturer and trade sources, {d}. Independent guide, not affiliated with any manufacturer.', { d: APP.dataAsOf })}</p>`;
   }
 
-  return { render, card, SORTS };
+  /* Live search: hide cards in place (no re-render, so the field keeps focus and the keyboard stays up). */
+  let query = '';
+  function filterLive(q) {
+    query = q;
+    const words = q.toLowerCase().trim().split(/\s+/).filter(Boolean);
+    let n = 0;
+    document.querySelectorAll('.cards .jet-card[data-jet]').forEach((c) => {
+      const j = FLEET_BY_ID[c.dataset.jet];
+      const hay = `${j.maker} ${j.model} ${CLASSES[j.cls].label}`.toLowerCase();
+      const hit = words.every((w) => hay.includes(w));
+      c.hidden = !hit;
+      if (hit) n++;
+    });
+    const cnt = document.getElementById('count');
+    if (cnt) cnt.textContent = Util.plural(n, t('aircraft'), t('aircraft'));
+    const none = document.getElementById('no-match');
+    if (none) none.hidden = n > 0;
+  }
+  function afterRender() { if (query) filterLive(query); }
+
+  return { render, card, SORTS, filterLive, afterRender };
 })();

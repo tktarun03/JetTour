@@ -63,6 +63,21 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   ok(await page.locator('.jet-card').count() === 4, 'Large filter shows 4');
   await page.selectOption('#sort', 'maker');
   ok((await page.locator('.jet-card .maker').first().textContent()) === 'Bombardier', 'sort by maker');
+  // zoom lock, search, refresh, compare tray, touch-and-hold sheet
+  ok(/user-scalable=no/.test(await page.getAttribute('meta[name="viewport"]', 'content')), 'pinch zoom disabled in the viewport');
+  ok((await page.evaluate(() => getComputedStyle(document.documentElement).touchAction)).includes('pan'), 'touch-action limits gestures to panning');
+  await page.click('.chip[data-v="all"]');
+  await page.fill('#q', 'gulf');
+  ok(await page.locator('.cards .jet-card:visible').count() === 3, 'search "gulf" shows the 3 Gulfstreams');
+  ok(await page.locator('#q').evaluate((el) => el === document.activeElement), 'search keeps focus while typing');
+  await page.fill('#q', 'zzz');
+  ok(await page.locator('#no-match').isVisible(), 'no-match message when nothing fits');
+  await page.fill('#q', '');
+  await page.click('#top-refresh');
+  ok(await page.locator('#top-refresh.spinning').count() === 1, 'refresh button spins while checking');
+  await page.waitForSelector('#toast.show');
+  ok((await toastText(page)) === 'Up to date', 'refresh ends with Up to date');
+  ok(await page.locator('#accessory').isHidden(), 'no compare tray when compare is empty');
   ok(errors.length === 0, `no console errors (${errors.join(' | ')})`);
   await ctx.close();
 }
@@ -85,10 +100,13 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
 
   await page.click('.tools [data-act="compare"]');
   ok((await toastText(page)) === 'Added to compare', 'compare notice');
+  ok(await page.locator('#accessory').isVisible(), 'compare tray appears above the tab bar');
+  ok((await page.locator('#accessory strong').textContent()) === '1 of 3 in compare', 'tray counts the jets');
   await page.click('#toast [data-t="act"]');
   ok((await store(page)).compare.length === 0, 'Undo empties compare');
 
   await page.goto(base + '#specs-global7500');
+  await page.waitForSelector('.spec-row');
   ok(await page.locator('.spec-row').count() >= 15, 'spec list rendered on the Specs tab');
   ok(await page.locator('.tabs a[aria-current="page"]').textContent() === 'Specs', 'Specs tab is active');
 
@@ -149,7 +167,9 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   ok(await page.locator('#toast.show').count() === 0, 'plain notice gone after ~4.5 s');
   // restore round trip
   const backup = await page.evaluate(() => Store.exportJSON());
-  await page.click('[data-act="reset"]'); await page.click('[data-act="reset-yes"]');
+  await page.click('[data-act="reset"]');
+  ok(await page.locator('.sheet[role="dialog"]').isVisible(), 'erase asks in an action sheet');
+  await page.click('.sheet-btn.danger');
   ok((await store(page)).compare.length === 0, 'erase clears data');
   await page.fill('#restore-box', backup); await page.click('[data-act="restore"]');
   ok((await store(page)).compare.length === 3, 'restore brings data back');

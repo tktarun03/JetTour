@@ -13,6 +13,8 @@ const Actions = (() => {
       } });
     } else {
       Store.set({ saved: [...S().saved, id] });
+      App.pop(`[data-act="save"][data-id="${id}"], #top-saved`);
+      Gestures.haptic(10);
       toast(t('Saved {name}', { name: name(id) }), { body: t('Find it under Saved'), undo: () => {
         Store.set({ saved: S().saved.filter((x) => x !== id) });
         App.refresh();
@@ -36,6 +38,8 @@ const Actions = (() => {
       return;
     } else {
       Store.set({ compare: [...list, id] });
+      App.pop(`[data-act="compare"][data-id="${id}"], #top-compare, #accessory`);
+      Gestures.haptic(8);
       const n = list.length + 1;
       toast(t('Added to compare'), { body: `${n} ${t('of')} 3 · ${name(id)}`, undo: () => {
         Store.set({ compare: S().compare.filter((x) => x !== id) });
@@ -69,6 +73,8 @@ const Actions = (() => {
     } else {
       seats[jetId] = seatId;
       Store.set({ seats });
+      App.pop(`.fp-seat[data-seat="${seatId}"], [data-act="pick-seat"]`);
+      Gestures.haptic(10);
       toast(t('Seat {id} is now yours', { id: seatId }), { body: name(jetId) + (prev ? ` · ${t('was')} ${prev}` : ''), undo: () => {
         if (S().seats[jetId] === seatId) {
           const s = Object.assign({}, S().seats);
