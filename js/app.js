@@ -1,11 +1,11 @@
-/* Boot, hash router, event delegation, preferences. Routes: #fleet #jet-<id> #seats-<id> #cabin-<id> #compare #saved #more */
+/* Boot, hash router, event delegation, preferences. Routes: #fleet #jet-<id> #cabin-<id> #seats-<id> #specs-<id> #compare #saved #more */
 const App = (() => {
   const view = () => document.getElementById('view');
   let hostTheme = null;
 
   function route() {
     const h = (location.hash || '#fleet').slice(1);
-    const m = h.match(/^(jet|seats|cabin)-([a-z0-9]+)$/);
+    const m = h.match(/^(jet|seats|cabin|specs)-([a-z0-9]+)$/);
     if (m && FLEET_BY_ID[m[2]]) return { name: m[1], jet: FLEET_BY_ID[m[2]] };
     if (['fleet', 'compare', 'saved', 'more'].includes(h)) return { name: h };
     return { name: 'fleet' };
@@ -15,19 +15,18 @@ const App = (() => {
     const r = route();
     const s = Store.get();
     let html = '';
-    let action = '';
-    if (r.name === 'jet') { Actions.markOpened(r.jet.id); html = Overview.render(r.jet, s); action = Overview.actionBar(r.jet, s); }
-    else if (r.name === 'seats') { Actions.markOpened(r.jet.id); html = Seats.render(r.jet, s); action = Overview.actionBar(r.jet, s); }
-    else if (r.name === 'cabin') { Actions.markOpened(r.jet.id); html = Interior.render(r.jet, s); action = Overview.actionBar(r.jet, s); }
+    if (r.jet) Actions.markOpened(r.jet.id);
+    if (r.name === 'jet') html = Overview.render(r.jet, s);
+    else if (r.name === 'seats') html = Seats.render(r.jet, s);
+    else if (r.name === 'cabin') html = Interior.render(r.jet, s);
+    else if (r.name === 'specs') html = Overview.specs(r.jet, s);
     else if (r.name === 'compare') html = Compare.render(s);
     else if (r.name === 'saved') html = Saved.render(s);
     else if (r.name === 'more') html = More.render(s);
     else html = Home.render(s);
     const y = window.scrollY;
     view().innerHTML = html;
-    const ab = document.getElementById('action-slot');
-    ab.innerHTML = action;
-    document.body.classList.toggle('has-action', !!action);
+    centreFloorplans();
     renderTabs(r);
     renderTop(s);
     if (keepScroll) window.scrollTo(0, y); else window.scrollTo(0, 0);
@@ -35,7 +34,7 @@ const App = (() => {
   }
 
   function renderTabs(r) {
-    const cur = { fleet: 'fleet', jet: 'fleet', seats: 'fleet', cabin: 'fleet', compare: 'compare', saved: 'saved', more: 'more' }[r.name];
+    const cur = { fleet: 'fleet', jet: 'fleet', seats: 'fleet', cabin: 'fleet', specs: 'fleet', compare: 'compare', saved: 'saved', more: 'more' }[r.name];
     document.querySelectorAll('.tabbar a').forEach((a) => {
       if (a.dataset.tab === cur) a.setAttribute('aria-current', 'page'); else a.removeAttribute('aria-current');
     });
@@ -44,8 +43,21 @@ const App = (() => {
   function renderTop(s) {
     const c = document.getElementById('top-compare');
     const sv = document.getElementById('top-saved');
-    if (c) c.querySelector('span').textContent = s.compare.length;
-    if (sv) sv.querySelector('span').textContent = s.saved.length;
+    for (const [el, n] of [[c, s.compare.length], [sv, s.saved.length]]) {
+      if (!el) continue;
+      const b = el.querySelector('.count');
+      b.textContent = n; b.dataset.n = n;
+    }
+  }
+
+  /* Scroll each horizontal floorplan so the selected seat or highlighted section is in view. */
+  function centreFloorplans() {
+    document.querySelectorAll('.fp-scroll').forEach((sc) => {
+      const target = sc.querySelector('.fp-seat.sel') || sc.querySelector('.fp-zone-hl[style]');
+      if (!target || sc.scrollWidth <= sc.clientWidth) return;
+      const a = target.getBoundingClientRect(), b = sc.getBoundingClientRect();
+      sc.scrollLeft += (a.left + a.width / 2) - (b.left + b.width / 2);
+    });
   }
 
   function refresh() { render(true); }
@@ -64,8 +76,8 @@ const App = (() => {
     const seat = e.target.closest('.fp-seat');
     if (seat && !el) {
       const r = route();
-      if (r.name === 'seats') { Seats.select(seat.dataset.seat); refresh(); document.getElementById('seat-card')?.scrollIntoView({ block: 'nearest' }); }
-      else if (r.name === 'cabin') { location.hash = `seats-${r.jet.id}`; Seats.select(seat.dataset.seat); }
+      if (r.name === 'seats') { Seats.select(seat.dataset.seat); refresh(); }
+      else if (r.jet) { Seats.select(seat.dataset.seat); location.hash = `seats-${r.jet.id}`; }
       return;
     }
     if (!el || el.tagName === 'SELECT') return;
@@ -78,6 +90,8 @@ const App = (() => {
       case 'clear-compare': Actions.clearCompare(); break;
       case 'pick-seat': Actions.setSeat(el.dataset.id, el.dataset.seat); break;
       case 'zone': Interior.setZone(el.dataset.id, Number(el.dataset.v)); refresh(); break;
+      case 'fp-fit': Seats.toggleFit(); refresh(); break;
+      case 'seat-kind': { const r = route(); if (r.jet) { Seats.selectKind(r.jet, el.dataset.k); refresh(); } break; }
       case 'hide-checklist':
         Store.set({ checklistHidden: true }); refresh();
         toast(t('Hid the checklist'), { body: t('Bring it back from More'), undo: () => { Store.set({ checklistHidden: false }); refresh(); } });
@@ -130,7 +144,7 @@ const App = (() => {
     if (e.target.matches('select[data-act="sort"]')) { Store.set({ sort: e.target.value }); refresh(); }
   }
   function onKey(e) {
-    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('fp-seat')) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && (e.target.classList.contains('fp-seat') || e.target.classList.contains('hot'))) { e.preventDefault(); e.target.dispatchEvent(new MouseEvent('click', { bubbles: true })); }
   }
 
   function updateNotice() {

@@ -1,6 +1,6 @@
 /* Line icons (24px grid, stroke = currentColor). */
 const Icon = (() => {
-  const s = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
+  const s = (d, extra = '') => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"${extra}>${d}</svg>`;
   return {
     arrow: s('<path d="M7 17L17 7M9 7h8v8"/>'),
     back: s('<path d="M15 5l-7 7 7 7"/>'),
@@ -19,6 +19,9 @@ const Icon = (() => {
     sofa: s('<path d="M4 11V8.5A2.5 2.5 0 0 1 6.5 6h11A2.5 2.5 0 0 1 20 8.5V11M3 12.5A1.5 1.5 0 0 1 6 12.5V15h12v-2.5a1.5 1.5 0 0 1 3 0V18H3zM5 18v2M19 18v2"/>'),
     check: s('<path d="M5 12.5l4.5 4.5L19 7.5"/>', ' stroke-width="3"'),
     menu: s('<path d="M5 8h14M5 12h14M5 16h9"/>'),
+    doc: s('<path d="M7 3.5h7l4 4V20a.5.5 0 0 1-.5.5h-10A.5.5 0 0 1 6 20V4a.5.5 0 0 1 1-.5zM14 3.5V8h4M9 12h6M9 15.5h6"/>'),
+    expand: s('<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5M8 8l8 8M16 8l-8 8"/>'),
+    right: s('<path d="M5 12h14M13 6l6 6-6 6"/>'),
     trash: s('<path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13"/>'),
   };
 })();

@@ -1,6 +1,6 @@
 # JetTour — notes for agents and maintainers
 
-JetTour is a mobile-first PWA fleet guide to twelve real business jets: specs with sources, a seat-by-seat floorplan picker, cabin sections and a three-way compare. Plain HTML/CSS/JS, no build step, no framework, no backend. Data the user creates (saved jets, preferred seats, settings) lives only in `localStorage` on their device.
+JetTour is a mobile-first PWA fleet guide to twelve real business jets: specs with sources, a seat-by-seat floorplan picker, cabin sections and a three-way compare. Look: thin Urbanist type (200/300/500), frosted-glass panels, dusty-blue feature cards, black pill for the active control; two-column layout at ≥900px. Plain HTML/CSS/JS, no build step, no framework, no backend. Data the user creates (saved jets, preferred seats, settings) lives only in `localStorage` on their device.
 
 Live: GitHub Pages from `main` (https://tktarun03.github.io/JetTour/). A Claude artifact mirror is built with `node tools/build-artifact.mjs`.
 
@@ -12,8 +12,8 @@ Live: GitHub Pages from `main` (https://tktarun03.github.io/JetTour/). A Claude 
 | `css/app.css` | All styles. Colour tokens at the top for light and dark |
 | `js/core/` | `config.js` (APP name/version), `i18n.js` (`t()`), `util.js` (escape, units), `releases.js`, `store.js` (state, `migrate()`) |
 | `js/data/fleet.js` | `CLASSES`, `FLEET`, `FLEET_BY_ID` — the aircraft data and cabin layouts |
-| `js/ui/` | `icons.js`, `toast.js` (notices), `jet-art.js` (side-view SVG + cross-section), `floorplan.js` (top-down cabin SVG) |
-| `js/features/` | One file per screen: `home`, `overview`, `seats`, `interior`, `compare`, `saved`, `more`, `intro`, plus `actions.js` (every data change + its notice) and `selfcheck.js` |
+| `js/ui/` | `icons.js`, `toast.js` (notices), `jet-art.js` (3/4-view `plan()`, side view with cutaway/hotspots, cross-section), `floorplan.js` (horizontal cabin SVG, nose left, + 3/4 seat illustrations) |
+| `js/features/` | One file per screen: `home`, `overview` (shared aircraft header + Aircraft and Specs tabs), `seats`, `interior`, `compare`, `saved`, `more`, `intro`, plus `actions.js` (every data change + its notice) and `selfcheck.js` |
 | `js/app.js` | Boot, hash router, click delegation, preferences, update notice, service-worker registration |
 | `sw.js` | Offline cache. `VERSION` must equal `APP.version` |
 | `tests/` | `structure.test.mjs` (versions, load order, name clashes), `flows.test.mjs` (Playwright flows + 3 phone sizes) |
@@ -28,7 +28,8 @@ Live: GitHub Pages from `main` (https://tktarun03.github.io/JetTour/). A Claude 
 | A cabin layout | `layout.zones[].rows` in `fleet.js`; module lengths in `Floorplan.LEN` (`js/ui/floorplan.js`) |
 | Seat names and descriptions | `Floorplan.seatInfo` |
 | Notice wording or timing | the call site in `js/features/actions.js` or `js/app.js`; behaviour in `js/ui/toast.js` |
-| Routes | `App.route()` in `js/app.js` (hashes: `#fleet #jet-<id> #seats-<id> #cabin-<id> #compare #saved #more`) |
+| Routes | `App.route()` in `js/app.js` (hashes: `#fleet #jet-<id> #cabin-<id> #seats-<id> #specs-<id> #compare #saved #more`) |
+| Look and feel | tokens at the top of `css/app.css` (light + two dark blocks); `.glass`, `.circle`, `.chip`, `.tabs`, `.sec-pills` are the building blocks |
 | App name / white-label | `APP` in `js/core/config.js`, `manifest.webmanifest`, `<title>` in `index.html` |
 
 ## Golden rules
@@ -59,6 +60,8 @@ See `.claude/skills/release/SKILL.md`.
 - `#settings` is reserved by the Claude artifact host, so the settings route is `#more`.
 - Artifact frames refuse service workers, `alert/confirm/prompt` and `<a download>`. Confirmations are in-page; backup is copy-to-clipboard with a visible text fallback.
 - Classic scripts share one global scope. `structure.test.mjs` fails on duplicate top-level names.
+- The floorplan scrolls sideways on phones; `App.centreFloorplans()` scrolls the selected seat or section into view after each render.
+- Section `+` hotspots are SVG `<g data-act="zone">` inside the hero; tests target `.sec-pills` buttons to avoid ambiguity.
 - `Floorplan.build` caches per aircraft id. If you edit layouts at runtime, clear the cache.
 - Range figures are published under different loads (CJ4 ferry with no passengers, Longitude load unstated). Keep `rangeCond` honest.
 - Seed localStorage in tests from a non-app page on the same origin (see `seed()`), or the running app overwrites it.

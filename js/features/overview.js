@@ -1,4 +1,4 @@
-/* Aircraft overview: hero, key numbers, full spec list with source markers, sources. */
+/* Aircraft screens' shared header + the Aircraft (overview) and Specs tabs. */
 const Overview = (() => {
   const mark = (j, key) => {
     if ((j.tp || []).includes(key)) return `<span class="mark" title="${t('Third-party figure')}">3P</span>`;
@@ -11,11 +11,79 @@ const Overview = (() => {
     return [FLEET[(i - 1 + FLEET.length) % FLEET.length], FLEET[(i + 1) % FLEET.length]];
   }
 
+  /* Back button, thin/medium title, tab pills, tool circles. */
+  function head(j, s, active, title) {
+    const saved = s.saved.includes(j.id), cmp = s.compare.includes(j.id);
+    const tabs = [
+      ['jet', t('Aircraft'), Icon.plane],
+      ['cabin', t('Interior'), Icon.sofa],
+      ['seats', t('Seats'), Icon.seat],
+      ['specs', t('Specs'), Icon.doc],
+    ];
+    return `<div class="ac-head">
+        <a class="circle" href="#fleet" aria-label="${t('Back to fleet')}">${Icon.back}</a>
+        <h1 class="title one">${title}</h1>
+      </div>
+      <nav class="tabs" aria-label="${t('Aircraft sections')}">${tabs.map(([k, l, ic]) => `<a href="#${k}-${j.id}"${k === active ? ' aria-current="page"' : ''}>${ic}${l}</a>`).join('')}</nav>
+      <div class="model-line" style="margin-bottom:6px">
+        <div><div class="eyebrow">${Util.esc(j.maker)} · ${t(CLASSES[j.cls].label)}</div><div class="m">${Util.esc(j.model)}</div></div>
+        <div class="tools" role="toolbar" aria-label="${t('Aircraft actions')}">
+          <button class="circle${cmp ? ' on' : ''}" data-act="compare" data-id="${j.id}" aria-pressed="${cmp}" aria-label="${t('Compare')}">${Icon.compare}</button>
+          <button class="circle${saved ? ' on' : ''}" data-act="save" data-id="${j.id}" aria-pressed="${saved}" aria-label="${t('Save')}">${saved ? Icon.heartFill : Icon.heart}</button>
+        </div>
+      </div>`;
+  }
+
+  /* Floorplan card, shared by Aircraft, Interior and Seats. */
+  function fpCard(j, s, { sel = null, hl = null, fit = false, tools = true } = {}) {
+    const fp = Floorplan.build(j);
+    return `<section class="fp-card glass${fit ? ' fit' : ''}" aria-label="${t('Floorplan')}">
+      <header><h3>${t('Floorplan')}</h3>${tools ? `
+        ${tools === 'links'
+          ? `<a class="circle" href="#seats-${j.id}" aria-label="${t('Open seat picker')}">${Icon.expand}</a>`
+          : `<button class="circle" data-act="fp-fit" aria-pressed="${fit}" aria-label="${fit ? t('Show at full size') : t('Fit to width')}">${Icon.expand}</button>`}
+        <a class="circle" href="#cabin-${j.id}" aria-label="${t('Interior sections')}">${Icon.grid}</a>
+        <a class="circle" href="#more" aria-label="${t('Settings')}">${Icon.more}</a>` : ''}</header>
+      <div class="fp-scroll">${fp.svg(sel, s.seats[j.id] || null, hl)}</div>
+    </section>`;
+  }
+
   function render(j, s) {
     const u = s.units;
     const [prev, next] = neighbours(j.id);
     const [rv, ru] = Util.distParts(j.rangeNm, u);
     const fp = Floorplan.build(j);
+    const machTxt = j.mach ? 'M ' + (String(j.mach).length > 4 ? String(j.mach) : j.mach.toFixed(2)) : Util.num(j.speedKt);
+    return `${head(j, s, 'jet', `${t('Aircraft')} <b>${t('Overview')}</b>`)}
+      <div class="stage">
+        <div class="side-pills">
+          <a class="circle" href="#specs-${j.id}" aria-label="${t('Baggage and specs')}">${Icon.bag}</a>
+          <a class="circle" href="#seats-${j.id}" aria-label="${t('Seats')}">${Icon.users}</a>
+        </div>
+        <div class="hero-art">${JetArt.side(j, { gear: true, door: true })}</div>
+      </div>
+      <div class="tools" style="justify-content:flex-end;margin-top:-4px">
+        <a class="circle" href="#jet-${prev.id}" aria-label="${t('Previous aircraft')}: ${Util.esc(prev.model)}">${Icon.prev}</a>
+        <a class="circle" href="#jet-${next.id}" aria-label="${t('Next aircraft')}: ${Util.esc(next.model)}">${Icon.next}</a>
+      </div>
+      ${j.status ? `<p class="status glass">${Util.esc(t(j.status))}</p>` : ''}
+      <div class="tiles">
+        <div class="tile glass sky"><div class="v">${j.paxMax}<small>${t('max')}</small></div><div class="k eyebrow">${t('Passengers')}</div><div class="note">${t('{n} seats in the layout shown', { n: fp.count })}</div></div>
+        <div class="tile glass"><div class="v">${rv}<small>${ru}</small></div><div class="k eyebrow">${t('Range')}</div><div class="note">${Util.esc(j.rangeCond.split(',')[0])}</div></div>
+        <div class="tile glass"><div class="v">${machTxt}<small>${j.mach ? '' : 'kt'}</small></div><div class="k eyebrow">${j.mach && j.machIsLimit ? t('Speed limit') : t('Top speed')}</div><div class="note">${Util.speed(j.speedKt, u)}${(j.calc || []).includes('speedKt') ? ' ' + t('approx.') : ''}</div></div>
+        <div class="tile glass"><div class="v">${Util.num(j.ceilingFt / 1000)}k<small>ft</small></div><div class="k eyebrow">${t('Ceiling')}</div><div class="note">${Util.alt(j.ceilingFt, 'metric')}</div></div>
+      </div>
+      <div class="ov-grid" style="margin-top:14px">
+        <div class="cross glass">${JetArt.cross(j)}<div><div class="eyebrow">${t('Cabin, to scale')}</div>
+          <div><b>${Util.len(j.cabin.l, u)}</b> ${t('long')}</div><div class="muted small">${Util.len(j.cabin.w, u)} ${t('wide')} · ${Util.len(j.cabin.h, u)} ${t('tall')}${mark(j, 'cabinH')}</div>
+          <div class="muted small">${t('Figure is 5 ft 10 in (1.78 m)')}</div></div></div>
+        ${fpCard(j, s, { fit: true, tools: 'links' })}
+      </div>
+      <p class="legend-note"><a href="#specs-${j.id}">${t('All specifications and sources')}</a></p>`;
+  }
+
+  function specs(j, s) {
+    const u = s.units;
     const rate = CLASSES[j.cls].rate;
     const rows = [
       [t('Maker'), Util.esc(j.maker)],
@@ -36,45 +104,14 @@ const Overview = (() => {
       [t('New list price'), j.price ? Util.money(j.price[0], j.price[1]) + mark(j, 'price') : '<span class="muted">' + t('Not published') + '</span>'],
       [t('Charter estimate'), `${Util.money(rate[0], rate[1])} ${t('per hour')}<br><span class="muted small">${t('{c} class range, 2026 guides, before taxes and fees', { c: t(CLASSES[j.cls].label) })}</span>`],
     ];
-    return `<div class="ov-head">
-        <h1 class="title">${t('Aircraft')} <b>${t('Overview')}</b></h1>
-        <div class="nav">
-          <a class="icon-btn" href="#jet-${prev.id}" aria-label="${t('Previous aircraft')}: ${Util.esc(prev.model)}">${Icon.prev}</a>
-          <a class="icon-btn" href="#jet-${next.id}" aria-label="${t('Next aircraft')}: ${Util.esc(next.model)}">${Icon.next}</a>
-        </div>
-      </div>
-      <div class="hero-art">${JetArt.side(j, { gear: true, door: true })}
-        <div class="side-pills" aria-hidden="true"><span>${Icon.bag}</span><span>${Icon.users}</span></div>
-      </div>
-      <div class="model-line"><div><div class="eyebrow">${Util.esc(j.maker)}</div><div class="m">${Util.esc(j.model)}</div></div>
-        <span class="tag">${t(CLASSES[j.cls].label)}</span></div>
-      ${j.status ? `<p class="status">${Util.esc(t(j.status))}</p>` : ''}
-      <div class="tiles">
-        <div class="tile sky"><div class="v num">${j.paxMax}<small>${t('max')}</small></div><div class="k eyebrow">${t('Passengers')}</div><div class="note">${t('{n} seats in the layout shown', { n: fp.count })}</div></div>
-        <div class="tile"><div class="v num">${rv}<small>${ru}</small></div><div class="k eyebrow">${t('Range')}</div><div class="note">${Util.esc(j.rangeCond.split(',')[0])}</div></div>
-        <div class="tile"><div class="v num">${j.mach ? 'M ' + (String(j.mach).length > 4 ? String(j.mach) : j.mach.toFixed(2)) : Util.num(j.speedKt)}<small>${j.mach ? '' : 'kt'}</small></div><div class="k eyebrow">${j.mach && j.machIsLimit ? t('Speed limit') : t('Top speed')}</div><div class="note">${Util.speed(j.speedKt, u)}${(j.calc || []).includes('speedKt') ? ' ' + t('approx.') : ''}</div></div>
-        <div class="tile"><div class="v num">${Util.num(j.ceilingFt / 1000)}k<small>ft</small></div><div class="k eyebrow">${t('Ceiling')}</div><div class="note">${Util.alt(j.ceilingFt, 'metric')}</div></div>
-      </div>
-      <div class="cross">${JetArt.cross(j)}<div><div class="eyebrow">${t('Cabin, to scale')}</div>
-        <div><b>${Util.len(j.cabin.l, u)}</b> ${t('long')}</div><div class="muted small">${Util.len(j.cabin.w, u)} ${t('wide')} · ${Util.len(j.cabin.h, u)} ${t('tall')}${mark(j, 'cabinH')}</div>
-        <div class="muted small">${t('Figure is 5 ft 10 in (1.78 m)')}</div></div></div>
+    return `${head(j, s, 'specs', `${t('Aircraft')} <b>${t('Specs')}</b>`)}
+      ${j.status ? `<p class="status glass">${Util.esc(t(j.status))}</p>` : ''}
       <h2 class="sec">${t('Specifications')}</h2>
-      <div class="spec-list">${rows.map(([k, v]) => `<div class="spec-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>
+      <div class="spec-list glass">${rows.map(([k, v]) => `<div class="spec-row"><span class="k">${k}</span><span class="v">${v}</span></div>`).join('')}</div>
       <p class="legend-note"><span class="mark">3P</span> ${t('third-party figure, no manufacturer number found')} · <span class="mark">≈</span> ${t('converted by us')}</p>
       <h2 class="sec">${t('Sources')}</h2>
       <ol class="sources">${j.sources.map(([title, url]) => `<li><a href="${Util.esc(url)}" target="_blank" rel="noopener">${Util.esc(title)}</a></li>`).join('')}</ol>
       <p class="legend-note">${t('Spot a wrong figure?')} <a href="${Util.esc(issueUrl(j))}" target="_blank" rel="noopener">${t('Report it on GitHub')}</a></p>`;
-  }
-
-  function actionBar(j, s) {
-    const saved = s.saved.includes(j.id), cmp = s.compare.includes(j.id);
-    return `<div class="action-bar" role="toolbar" aria-label="${t('Aircraft actions')}">
-      <span class="lbl">${t('Floorplan')}</span>
-      <a class="icon-btn" href="#cabin-${j.id}" aria-label="${t('Interior sections')}">${Icon.grid}</a>
-      <button class="icon-btn${cmp ? ' on' : ''}" data-act="compare" data-id="${j.id}" aria-pressed="${cmp}" aria-label="${t('Compare')}">${Icon.compare}</button>
-      <button class="icon-btn${saved ? ' on' : ''}" data-act="save" data-id="${j.id}" aria-pressed="${saved}" aria-label="${t('Save')}">${saved ? Icon.heartFill : Icon.heart}</button>
-      <a class="main-btn" href="#seats-${j.id}" style="display:inline-flex;align-items:center;text-decoration:none">${t('Seats')}</a>
-    </div>`;
   }
 
   function issueUrl(j) {
@@ -83,5 +120,5 @@ const Overview = (() => {
     return `https://github.com/${APP.repo}/issues/new?title=${encodeURIComponent(title)}&body=${encodeURIComponent(body)}&labels=data`;
   }
 
-  return { render, actionBar, issueUrl };
+  return { render, specs, head, fpCard, issueUrl };
 })();

@@ -20,6 +20,7 @@ const server = http.createServer((req, res) => {
 });
 await new Promise((r) => server.listen(0, r));
 const base = `http://localhost:${server.address().port}/`;
+const VERSION = fs.readFileSync(path.join(root, 'js/core/config.js'), 'utf8').match(/version:\s*'([^']+)'/)[1];
 
 let failed = 0;
 const ok = (cond, msg) => { console.log(`${cond ? 'ok  ' : 'FAIL'} ${msg}`); if (!cond) failed++; };
@@ -69,13 +70,12 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
 // 2. Overview → save with Undo → compare with Undo → seat with Undo → interior
 {
   const { ctx, page, errors } = await fresh();
-  await seed(page, { introDone: true, lastVersion: '1.0.0' });
+  await seed(page, { introDone: true, lastVersion: VERSION });
   await page.goto(base + '#jet-global7500');
   ok((await page.locator('.model-line .m').textContent()) === 'Global 7500', 'overview opens Global 7500');
-  ok(await page.locator('.spec-row').count() >= 15, 'spec list rendered');
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/03-overview.png`, fullPage: false });
 
-  await page.click('.action-bar [data-act="save"]');
+  await page.click('.tools [data-act="save"]');
   ok((await toastText(page)) === 'Saved Global 7500', 'save notice text');
   ok((await store(page)).saved.includes('global7500'), 'saved in storage');
   await page.waitForTimeout(5500);
@@ -83,12 +83,18 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   await page.click('#toast [data-t="act"]');
   ok(!(await store(page)).saved.includes('global7500'), 'Undo removes the save');
 
-  await page.click('.action-bar [data-act="compare"]');
+  await page.click('.tools [data-act="compare"]');
   ok((await toastText(page)) === 'Added to compare', 'compare notice');
   await page.click('#toast [data-t="act"]');
   ok((await store(page)).compare.length === 0, 'Undo empties compare');
 
+  await page.goto(base + '#specs-global7500');
+  ok(await page.locator('.spec-row').count() >= 15, 'spec list rendered on the Specs tab');
+  ok(await page.locator('.tabs a[aria-current="page"]').textContent() === 'Specs', 'Specs tab is active');
+
   await page.goto(base + '#seats-global7500');
+  await page.click('.seat-type[data-k="divan"]');
+  ok((await page.locator('#seat-card h3').textContent()) === 'Divan', 'seat-type card selects a divan');
   await page.locator('.fp-seat[data-seat="3B"]').click();
   ok((await page.locator('#seat-card .eyebrow').textContent()).includes('3B'), 'tapping seat 3B updates the card');
   ok((await page.locator('#seat-card h3').textContent()) === 'Dining chair', 'seat 3B is a dining chair');
@@ -100,8 +106,10 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   ok(!(await store(page)).seats.global7500, 'Undo clears the seat');
 
   await page.goto(base + '#cabin-global7500');
-  await page.click('[data-act="zone"][data-v="3"]');
+  await page.click('.sec-pills [data-v="3"]');
   ok((await page.locator('.zone-card h3').textContent()) === 'Entertainment suite', 'section 4 is the Entertainment suite');
+  await page.click('.hero-art .hot[data-v="0"]');
+  ok((await page.locator('.zone-card h3').textContent()) === 'Entrance', '+ hotspot jumps to section 1');
   if (SHOTS) await page.screenshot({ path: `${SHOTS}/05-interior.png` });
   ok(errors.length === 0, `no console errors (${errors.join(' | ')})`);
   await ctx.close();
@@ -129,7 +137,7 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
   await page.goto(base + '#more');
   await page.click('[data-act="pref"][data-k="units"][data-v="metric"]');
   ok((await store(page)).units === 'metric', 'metric saved');
-  await page.goto(base + '#jet-g700');
+  await page.goto(base + '#specs-g700');
   ok((await page.locator('.spec-list').textContent()).includes('km'), 'specs show km in metric');
   await page.goto(base + '#more');
   await page.click('[data-act="pref"][data-k="theme"][data-v="dark"]');
@@ -154,15 +162,13 @@ const store = (page) => page.evaluate(() => JSON.parse(localStorage.getItem('jet
 // 4. Layout at three phone sizes, every route, light and dark
 for (const vp of [{ width: 375, height: 667 }, { width: 390, height: 844 }, { width: 430, height: 932 }]) {
   const { ctx, page, errors } = await fresh(vp);
-  await seed(page, { introDone: true, lastVersion: '1.0.0', compare: ['g700', 'cj4gen2', 'falcon8x'] });
-  for (const r of ['fleet', 'jet-phenom300e', 'seats-g700', 'cabin-falcon8x', 'compare', 'saved', 'more']) {
+  await seed(page, { introDone: true, lastVersion: VERSION, compare: ['g700', 'cj4gen2', 'falcon8x'] });
+  for (const r of ['fleet', 'jet-phenom300e', 'seats-g700', 'cabin-falcon8x', 'specs-global7500', 'compare', 'saved', 'more']) {
     await page.goto(base + '#' + r); await page.reload();
     const sw = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
     ok(sw <= 0, `${vp.width}×${vp.height} #${r}: no horizontal scroll (${sw})`);
     const tab = await page.locator('.tabbar').boundingBox();
     ok(tab && tab.y + tab.height <= vp.height + 1, `${vp.width}×${vp.height} #${r}: tab bar fully visible`);
-    const bar = await page.locator('.action-bar').boundingBox().catch(() => null);
-    if (bar) ok(bar.y + bar.height <= tab.y, `${vp.width}×${vp.height} #${r}: action bar sits above tab bar`);
     const small = await page.evaluate(() => Array.from(document.querySelectorAll('#view *')).filter((e) => e.childElementCount === 0 && e.textContent.trim() && !e.closest('svg') && parseFloat(getComputedStyle(e).fontSize) < 11).length);
     ok(small === 0, `${vp.width}×${vp.height} #${r}: no text under 11px`);
   }

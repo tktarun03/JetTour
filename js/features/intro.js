@@ -1,10 +1,16 @@
-/* Skippable three-slide intro. Last button goes straight to the fleet (there is no sign-up). */
+/* Skippable three-slide intro on a sky gradient. Last button goes straight to the fleet (there is no sign-up). */
 const Intro = (() => {
   function open(onDone) {
+    const g700 = FLEET_BY_ID.g700, g7500 = FLEET_BY_ID.global7500;
+    const demoCard = `<div class="jet-card sky card-demo" aria-hidden="true">
+        <div><div class="pax">${g700.paxTyp}</div><div class="pax-l">${t('Passengers')}</div></div>
+        <span class="go">${Icon.arrow}</span><div class="art">${JetArt.plan(g700)}</div>
+        <div class="maker">${Util.esc(g700.maker)}</div><div class="model">${Util.esc(g700.model)} · ${t('Grand Suite layout')}</div></div>`;
+    const seatCard = `<div class="seat-type card-demo" aria-hidden="true" style="aspect-ratio:1/1;flex:none">${Floorplan.icon('recliner')}<span class="nm">${t('Recliner')}</span><span class="go">${Icon.arrow}</span></div>`;
     const slides = [
-      [t('Twelve real jets.'), t('From the light Phenom 300E to the 8,200 nm Gulfstream G800, with published specs and their sources.'), FLEET[0]],
-      [t('Walk the cabin.'), t('Every jet has a floorplan. Tap a seat to see what it is, then make it yours.'), FLEET_BY_ID.global7500],
-      [t('Compare side by side.'), t('Range, cabin and speed for up to three jets, in feet or metres.'), FLEET_BY_ID.g700],
+      [`${Util.esc(APP.name)} <b>${t('Twelve real jets.')}</b>`, t('From the light Phenom 300E to the 8,200 nm Gulfstream G800, with published specs and their sources.'), demoCard],
+      [`${t('Every seat,')} <b>${t('every section.')}</b>`, t('Walk the cabin section by section, tap any seat on the floorplan, then make it yours.'), seatCard],
+      [`${t('Side by side,')} <b>${t('in seconds.')}</b>`, t('Range, cabin and speed for up to three jets, in feet or metres.'), `<div class="hero-art">${JetArt.side(g7500, { gear: true, door: true })}</div>`],
     ];
     const el = document.createElement('div');
     el.className = 'intro';
@@ -12,9 +18,8 @@ const Intro = (() => {
     el.setAttribute('role', 'dialog');
     el.setAttribute('aria-label', t('Welcome to {app}', { app: APP.name }));
     el.innerHTML = `<button class="link-btn skip" data-i="skip">${t('Skip')}</button>
-      <div class="slides" id="intro-slides">${slides.map(([h, p, j], i) => `<section class="slide" aria-label="${i + 1} / ${slides.length}">
-        <div class="art">${JetArt.side(j, { gear: i === 1, door: i === 1, tilt: i === 1 ? 0 : -6 })}</div>
-        <h1 class="title" style="margin:0">${i === 0 ? `${Util.esc(APP.name)} <b>${h}</b>` : `<b>${h}</b>`}</h1><p>${p}</p></section>`).join('')}</div>
+      <div class="slides" id="intro-slides">${slides.map(([h, p, art], i) => `<section class="slide" aria-label="${i + 1} / ${slides.length}">
+        ${art}<h1 class="title" style="margin:6px 0 0">${h}</h1><p>${p}</p></section>`).join('')}</div>
       <div class="dots">${slides.map((_, i) => `<i class="${i === 0 ? 'on' : ''}"></i>`).join('')}</div>
       <button class="next" data-i="next">${t('Next')}</button>`;
     document.body.appendChild(el);

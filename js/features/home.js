@@ -17,10 +17,10 @@ const Home = (() => {
     const saved = s.saved.includes(j.id);
     const [rv, ru] = Util.distParts(j.rangeNm, s.units);
     return `<a class="jet-card${i % 2 === 0 ? ' sky' : ''}" href="#jet-${j.id}" data-jet="${j.id}">
-      <div><div class="pax num">${j.paxMax}</div><div class="pax-l">${t('Passengers, max')}</div></div>
+      <div><div class="pax num">${j.paxMax}</div><div class="pax-l">${t('Passengers')}</div></div>
       <div class="tags">${saved ? `<span class="tag">${t('Saved')}</span>` : ''}${j.successor ? `<span class="tag">${t('Successor due')}</span>` : ''}</div>
       <span class="go" aria-hidden="true">${Icon.arrow}</span>
-      <div class="art">${JetArt.side(j, { tilt: -5 })}</div>
+      <div class="art">${JetArt.plan(j)}</div>
       <div class="foot-row">
         <div><div class="maker">${Util.esc(j.maker)}</div><div class="model">${Util.esc(j.model)} · ${t(CLASSES[j.cls].label)}</div></div>
         <div class="range-mini">${rv} ${ru}<br>${t('range')}</div>
@@ -38,7 +38,7 @@ const Home = (() => {
     ];
     const done = steps.filter((x) => x[0]).length;
     if (done === steps.length) return '';
-    return `<section class="checklist" aria-label="${t('Get started')}">
+    return `<section class="checklist glass" aria-label="${t('Get started')}">
       <header><h3>${t('Get started')} <span class="muted small num">${done}/${steps.length}</span></h3>
       <button class="link-btn" data-act="hide-checklist">${t('Hide')}</button></header>
       <ul>${steps.map(([ok, label]) => `<li class="${ok ? 'done' : ''}"><span class="tick">${ok ? Icon.check : ''}</span>${label}</li>`).join('')}</ul>

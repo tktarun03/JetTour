@@ -7,7 +7,7 @@ const More = (() => {
 
   function render(s) {
     return `<h1 class="title">${t('More')} <b>${t('Settings')}</b></h1>
-      <div class="group">
+      <div class="group glass">
         <div class="set-row"><span class="k">${t('Theme')}</span>${seg('theme', s.theme, [['system', t('System')], ['light', t('Light')], ['dark', t('Dark')]])}</div>
         <div class="set-row"><span class="k">${t('Units')}</span>${seg('units', s.units, [['imperial', t('ft · nm · kt')], ['metric', t('m · km · km/h')]])}</div>
         <div class="set-row"><span class="k">${t('Text size')}</span>${seg('textSize', s.textSize, [['s', 'A−'], ['m', 'A'], ['l', 'A+']])}</div>
@@ -17,7 +17,7 @@ const More = (() => {
       </div>
 
       <h2 class="sec">${t('Your data')}</h2>
-      <div class="group">
+      <div class="group glass">
         <div class="set-row"><span class="k">${t('Back up')}</span><span class="d">${t('Saved jets, seats and settings live only on this device. Copy the backup and keep it somewhere safe.')}</span>
           <div class="confirm-row"><button class="btn" data-act="backup">${t('Copy backup')}</button></div>
           <textarea class="box" id="backup-box" readonly hidden aria-label="${t('Backup text')}"></textarea></div>
@@ -31,10 +31,10 @@ const More = (() => {
       </div>
 
       <h2 class="sec">${t('Version history')}</h2>
-      <div class="group" id="versions">${RELEASES.map((r) => `<div class="rel"><h4>${t('Version')} ${Util.esc(r.v)} <span class="muted small num">${Util.esc(r.date)}</span></h4><ul>${r.notes.map((n) => `<li>${Util.esc(t(n))}</li>`).join('')}</ul></div>`).join('')}</div>
+      <div class="group glass" id="versions">${RELEASES.map((r) => `<div class="rel"><h4>${t('Version')} ${Util.esc(r.v)} <span class="muted small num">${Util.esc(r.date)}</span></h4><ul>${r.notes.map((n) => `<li>${Util.esc(t(n))}</li>`).join('')}</ul></div>`).join('')}</div>
 
       <h2 class="sec">${t('Help')}</h2>
-      <div class="group">
+      <div class="group glass">
         <div class="set-row inline"><span><span class="k">${t('Self-check')}</span><br><span class="d">${t('Checks the fleet data, floorplans and storage on this device')}</span></span><button class="btn" data-act="selfcheck">${t('Run')}</button></div>
         ${checkResult ? `<div class="check-out">${Util.esc(checkResult)}</div>` : ''}
         <div class="set-row"><span class="k">${t('Install on iPhone')}</span><span class="d">${t('In Safari, tap Share, then Add to Home Screen. The Home Screen app keeps its own storage, so back up first if you have saved jets in Safari.')}</span></div>
@@ -42,7 +42,7 @@ const More = (() => {
       </div>
 
       <h2 class="sec">${t('About')}</h2>
-      <div class="group"><div class="set-row"><span class="d">${t('{app} {v} is an independent fleet guide. It is not affiliated with Bombardier, Cessna/Textron Aviation, Dassault, Embraer or Gulfstream; their names and model names belong to them. Figures come from manufacturer pages and brochures where available, otherwise from trade press and brokers (marked 3P), as of {d}. Aircraft drawings are original illustrations. Check with an operator before you book.', { app: APP.name, v: APP.version, d: APP.dataAsOf })}</span></div></div>`;
+      <div class="group glass"><div class="set-row"><span class="d">${t('{app} {v} is an independent fleet guide. It is not affiliated with Bombardier, Cessna/Textron Aviation, Dassault, Embraer or Gulfstream; their names and model names belong to them. Figures come from manufacturer pages and brochures where available, otherwise from trade press and brokers (marked 3P), as of {d}. Aircraft drawings are original illustrations. Check with an operator before you book.', { app: APP.name, v: APP.version, d: APP.dataAsOf })}</span></div></div>`;
   }
 
   function runCheck() {

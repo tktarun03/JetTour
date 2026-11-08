@@ -10,7 +10,7 @@ const Compare = (() => {
     </div>`;
     const head = `<h1 class="title">${t('Compare')} <b>${t('Aircraft')}</b></h1>${pick}`;
     if (picked.length === 0) {
-      return `${head}<div class="empty">${JetArt.side(FLEET[8], { tilt: -4 })}<h3>${t('Nothing to compare yet')}</h3>
+      return `${head}<div class="empty glass">${JetArt.plan(FLEET_BY_ID.global7500)}<h3>${t('Nothing to compare yet')}</h3>
         <p>${t('Tap up to three jets above. Range, cabin and speed line up side by side.')}</p></div>`;
     }
     const bar = (v, m) => `<div class="bar"><span style="width:${Math.round((v / m) * 100)}%"></span></div>`;
@@ -28,7 +28,7 @@ const Compare = (() => {
       [t('Charter estimate'), (j) => `${Util.money(CLASSES[j.cls].rate[0], CLASSES[j.cls].rate[1])}/h`],
     ];
     return `${head}
-      <div class="cmp-table-wrap"><table class="cmp-table"><colgroup><col class="k">${picked.map(() => '<col>').join('')}</colgroup>
+      <div class="cmp-table-wrap glass"><table class="cmp-table"><colgroup><col class="k">${picked.map(() => '<col>').join('')}</colgroup>
         <thead><tr><th scope="col"><span class="eyebrow">${picked.length} ${t('of')} 3</span></th>${picked.map((j) => `<th scope="col"><a href="#jet-${j.id}">${Util.esc(j.model)}</a><div class="muted small">${Util.esc(j.maker)}</div></th>`).join('')}</tr></thead>
         <tbody>${R.map(([k, f]) => `<tr><th scope="row">${k}</th>${picked.map((j) => `<td>${f(j)}</td>`).join('')}</tr>`).join('')}</tbody>
       </table></div>
